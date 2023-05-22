@@ -6,13 +6,18 @@ import {
 } from "./components/AiringNext";
 import { ApolloClient, InMemoryCache, gql } from "@apollo/client";
 import { useEffect, useState } from "react";
+import { MediaCard } from "./components/MediaCard";
+import useTimeTicker from "./hooks/useTimeTicker";
 
 const client = new ApolloClient({
     uri: "https://graphql.anilist.co",
-    cache: new InMemoryCache(),
+    cache: new InMemoryCache({
+        addTypename: false,
+        resultCaching: false,
+    }),
 });
 
-const query = gql`
+const nextAiringQuery = gql`
     query GetNextAiring($perPage: Int) {
         Page(perPage: $perPage) {
             airingSchedules(sort: TIME, notYetAired: true) {
@@ -35,29 +40,83 @@ const query = gql`
     }
 `;
 
+const mediaQuery = gql`
+    query GetUserMedia($userName: String) {
+        MediaListCollection(userName: $userName, status: CURRENT, type: ANIME) {
+            lists {
+                entries {
+                    media {
+                        id
+                        title {
+                            english
+                            romaji
+                        }
+                        coverImage {
+                            large
+                        }
+                        episodes
+                        nextAiringEpisode {
+                            episode
+                        }
+                        popularity
+                    }
+                    progress
+                }
+            }
+        }
+    }
+`;
+
 export default function App() {
     const { width, scale } = useWindowDimensions();
     const maxCards = Math.floor((width * scale) / (AiringNextWidth + 15));
-    // const cards = [];
     const [airingNext, setAiringNext] = useState([]);
-    useEffect(() => {
-        async function fetchData() {
-            const resp = await client.query({
-                query: query,
-                variables: {
-                    perPage: maxCards,
-                },
-            });
-            setAiringNext(resp.data.Page.airingSchedules);
-        }
-        fetchData();
-    }, [maxCards]);
+    const [medias, setMedias] = useState([]);
 
-    const [now, setNow] = useState(Date.now());
+    const fetchAiringNext = async () => {
+        const data = await client.query({
+            query: nextAiringQuery,
+            variables: {
+                perPage: maxCards,
+            },
+            fetchPolicy: "network-only",
+        });
+        const newAiringNext = data.data.Page.airingSchedules;
+        setAiringNext(newAiringNext);
+    };
+
     useEffect(() => {
+        fetchAiringNext();
+    }, [maxCards]);
+    const now = useTimeTicker(airingNext, fetchAiringNext);
+
+    useEffect(() => {
+        const fetchMedia = async () => {
+            const data = await client.query({
+                query: mediaQuery,
+                variables: {
+                    userName: "Zelak",
+                },
+                fetchPolicy: "network-only",
+            });
+
+            let newMedias = data.data.MediaListCollection.lists[0].entries;
+            newMedias = newMedias
+                .filter((media) => {
+                    if (media.media.episodes === null) return true;
+                    return media.progress < media.media.episodes;
+                })
+                .sort((a, b) => {
+                    return b.media.popularity - a.media.popularity;
+                });
+            setMedias(newMedias);
+        };
+
+        // interval to fetch media every 5 minutes
+        fetchMedia();
         const intervalId = setInterval(() => {
-            setNow(Date.now());
-        }, 1000);
+            fetchMedia();
+        }, 300000);
 
         return () => clearInterval(intervalId);
     }, []);
@@ -91,14 +150,26 @@ export default function App() {
                     );
                 })}
             </View>
-            {/* <Video
-                source={{
-                }}
-                style={{ width: "100%", height: "100%" }}
-                useNativeControls
-                resizeMode={ResizeMode.CONTAIN}
-                shouldPlay={true}
-            /> */}
+            <View style={styles.mediaCardContainer}>
+                {medias.map((media) => {
+                    return (
+                        <MediaCard
+                            key={media.media.id}
+                            anime={{
+                                name:
+                                    media.media.title.english ||
+                                    media.media.title.romaji,
+                                image: media.media.coverImage.large,
+                                episodes: media.media.episodes,
+                                progress: media.progress,
+                                nextAiringEpisode:
+                                    media.media.nextAiringEpisode,
+                            }}
+                            scale={scale}
+                        />
+                    );
+                })}
+            </View>
         </View>
     );
 }
@@ -107,5 +178,11 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#1E1E1E",
+    },
+    mediaCardContainer: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        padding: 5,
+        justifyContent: "space-evenly",
     },
 });
