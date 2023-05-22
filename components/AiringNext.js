@@ -1,10 +1,16 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import { View, Image, Text } from "react-native";
+import {
+    differenceInSeconds,
+    differenceInMinutes,
+    differenceInHours,
+    differenceInDays,
+} from "date-fns";
 
 export const width = 306;
 export const height = 112;
 
-export const AiringNext = ({ anime, scale }) => {
+export const AiringNext = ({ anime, scale, now }) => {
     const cardContainerStyle = {
         flexDirection: "row",
         width: width / scale,
@@ -30,6 +36,30 @@ export const AiringNext = ({ anime, scale }) => {
         fontSize: 14 / scale,
     };
 
+    const [timeRemaining, setTimeRemaining] = useState("");
+
+    useEffect(() => {
+        const targetDate = anime.timestamp * 1000; // convert the timestamp to milliseconds
+
+        const days = differenceInDays(targetDate, now);
+        const hours = differenceInHours(targetDate, now) % 24;
+        const minutes = differenceInMinutes(targetDate, now) % 60;
+        const seconds = differenceInSeconds(targetDate, now) % 60;
+
+        let timeString = "";
+        if (days > 0) {
+            timeString += `${days}d `;
+        }
+        if (timeString.length > 0 || hours > 0) {
+            timeString += `${hours}h `;
+        }
+        if (timeString.length > 0 || minutes > 0) {
+            timeString += `${minutes}m `;
+        }
+        timeString += `${seconds}s`;
+        setTimeRemaining(timeString);
+    }, [anime.timestamp, now]);
+
     return (
         <View style={cardContainerStyle}>
             <Image
@@ -46,7 +76,9 @@ export const AiringNext = ({ anime, scale }) => {
                         borderBottomWidth: 1 / scale,
                     }}
                 />
-                <Text style={textStyle}>{anime.nextEpisode}</Text>
+                <Text
+                    style={textStyle}
+                >{`EP ${anime.nextEpisode}: ${timeRemaining}`}</Text>
             </View>
         </View>
     );

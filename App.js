@@ -4,24 +4,63 @@ import {
     width as AiringNextWidth,
     height as AiringNextHeight,
 } from "./components/AiringNext";
+import { ApolloClient, InMemoryCache, gql } from "@apollo/client";
+import { useEffect, useState } from "react";
+
+const client = new ApolloClient({
+    uri: "https://graphql.anilist.co",
+    cache: new InMemoryCache(),
+});
+
+const query = gql`
+    query GetNextAiring($perPage: Int) {
+        Page(perPage: $perPage) {
+            airingSchedules(sort: TIME, notYetAired: true) {
+                airingAt
+                episode
+                media {
+                    id
+                    title {
+                        romaji
+                        english
+                        native
+                    }
+                    coverImage {
+                        large
+                        color
+                    }
+                }
+            }
+        }
+    }
+`;
 
 export default function App() {
     const { width, scale } = useWindowDimensions();
     const maxCards = Math.floor((width * scale) / (AiringNextWidth + 15));
-    const cards = [];
-    for (let i = 0; i < maxCards; i++) {
-        cards.push(
-            <AiringNext
-                key={i}
-                anime={{
-                    name: "Kimetsu no Yaiba: Katanakaji no",
-                    url: "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx145139-rRimpHGWLhym.png",
-                    nextEpisode: "Ep 8: 6d 20h 28m",
-                }}
-                scale={scale}
-            />
-        );
-    }
+    // const cards = [];
+    const [airingNext, setAiringNext] = useState([]);
+    useEffect(() => {
+        async function fetchData() {
+            const resp = await client.query({
+                query: query,
+                variables: {
+                    perPage: maxCards,
+                },
+            });
+            setAiringNext(resp.data.Page.airingSchedules);
+        }
+        fetchData();
+    }, [maxCards]);
+
+    const [now, setNow] = useState(Date.now());
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            setNow(Date.now());
+        }, 1000);
+
+        return () => clearInterval(intervalId);
+    }, []);
 
     const navbarStyle = {
         height: AiringNextHeight / scale + 20, // 20% of screen height
@@ -33,7 +72,25 @@ export default function App() {
 
     return (
         <View style={styles.container}>
-            <View style={navbarStyle}>{cards}</View>
+            <View style={navbarStyle}>
+                {airingNext.map((airing) => {
+                    return (
+                        <AiringNext
+                            key={airing.media.id}
+                            anime={{
+                                name:
+                                    airing.media.title.english ||
+                                    airing.media.title.romaji,
+                                url: airing.media.coverImage.large,
+                                nextEpisode: airing.episode,
+                                timestamp: airing.airingAt,
+                            }}
+                            scale={scale}
+                            now={now}
+                        />
+                    );
+                })}
+            </View>
             {/* <Video
                 source={{
                 }}
