@@ -2,7 +2,9 @@ import { View, Text, ImageBackground, StyleSheet } from "react-native";
 
 export const MediaCard = ({ anime, scale }) => {
     const nextEpisode =
-        anime.nextAiringEpisode?.episode ?? anime.episodes ?? "?";
+        anime.nextAiringEpisode?.episode == null
+            ? anime.episodes ?? "?"
+            : anime.nextAiringEpisode?.episode - 1;
     const color = anime.progress === 0 ? "#300FFF" : "#ED780D";
 
     return (
@@ -10,9 +12,9 @@ export const MediaCard = ({ anime, scale }) => {
             style={[
                 styles.mediaCardContainer,
                 {
-                    width: 200 / scale,
-                    height: 250 / scale,
-                    borderRadius: 0.1 * (250 / scale),
+                    width: 150 / scale,
+                    height: 200 / scale,
+                    borderRadius: 0.1 * (200 / scale),
                     borderColor: color,
                 },
             ]}
@@ -23,9 +25,14 @@ export const MediaCard = ({ anime, scale }) => {
                 }}
                 style={styles.mediaCard}
             >
-                <View style={[styles.mediaCardOverlay, { height: 70 / scale }]}>
+                <View style={[styles.mediaCardOverlay, { height: 60 / scale }]}>
                     <Text
-                        style={[styles.mediaCardText, { fontSize: 14 / scale }]}
+                        numberOfLines={2}
+                        ellipsizeMode="tail"
+                        style={[
+                            styles.mediaCardText,
+                            { fontSize: 16 / scale, height: 37 / scale },
+                        ]}
                     >
                         {anime.name}
                     </Text>
@@ -62,6 +69,7 @@ const styles = StyleSheet.create({
         flexDirection: "column",
     },
     mediaCardText: {
+        paddingTop: 2,
         paddingLeft: 5,
         paddingRight: 5,
         color: "#FFFFFF",

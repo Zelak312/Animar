@@ -8,6 +8,7 @@ import { ApolloClient, InMemoryCache, gql } from "@apollo/client";
 import { useEffect, useState } from "react";
 import { MediaCard } from "./components/MediaCard";
 import useTimeTicker from "./hooks/useTimeTicker";
+import { ScrollView } from "react-native-web";
 
 const client = new ApolloClient({
     uri: "https://graphql.anilist.co",
@@ -82,7 +83,6 @@ export default function App() {
             fetchPolicy: "network-only",
         });
         const newAiringNext = data.data.Page.airingSchedules;
-        console.log(newAiringNext);
         setAiringNext(newAiringNext);
     };
 
@@ -103,9 +103,15 @@ export default function App() {
 
             let newMedias = data.data.MediaListCollection.lists[0].entries;
             newMedias = newMedias
-                .filter((media) => {
-                    if (media.media.episodes === null) return true;
-                    return media.progress < media.media.episodes;
+                .filter((resp) => {
+                    if (resp.media.episodes === null) return true;
+                    if (resp.media.nextAiringEpisode) {
+                        return (
+                            resp.progress <
+                            resp.media.nextAiringEpisode.episode - 1
+                        );
+                    }
+                    return resp.progress < resp.media.episodes;
                 })
                 .sort((a, b) => {
                     return b.media.popularity - a.media.popularity;
@@ -151,26 +157,28 @@ export default function App() {
                     );
                 })}
             </View>
-            <View style={styles.mediaCardContainer}>
-                {medias.map((media) => {
-                    return (
-                        <MediaCard
-                            key={media.media.id}
-                            anime={{
-                                name:
-                                    media.media.title.english ||
-                                    media.media.title.romaji,
-                                image: media.media.coverImage.large,
-                                episodes: media.media.episodes,
-                                progress: media.progress,
-                                nextAiringEpisode:
-                                    media.media.nextAiringEpisode,
-                            }}
-                            scale={scale}
-                        />
-                    );
-                })}
-            </View>
+            <ScrollView>
+                <View style={styles.mediaCardContainer}>
+                    {medias.map((media) => {
+                        return (
+                            <MediaCard
+                                key={media.media.id}
+                                anime={{
+                                    name:
+                                        media.media.title.english ||
+                                        media.media.title.romaji,
+                                    image: media.media.coverImage.large,
+                                    episodes: media.media.episodes,
+                                    progress: media.progress,
+                                    nextAiringEpisode:
+                                        media.media.nextAiringEpisode,
+                                }}
+                                scale={scale}
+                            />
+                        );
+                    })}
+                </View>
+            </ScrollView>
         </View>
     );
 }
