@@ -12,9 +12,9 @@ export const MediaCard = ({ anime, scale }) => {
             style={[
                 styles.mediaCardContainer,
                 {
-                    width: 150 / scale,
-                    height: 200 / scale,
-                    borderRadius: 0.1 * (200 / scale),
+                    width: 200 / scale,
+                    height: 250 / scale,
+                    borderRadius: 0.1 * (250 / scale),
                     borderColor: color,
                 },
             ]}
@@ -25,13 +25,13 @@ export const MediaCard = ({ anime, scale }) => {
                 }}
                 style={styles.mediaCard}
             >
-                <View style={[styles.mediaCardOverlay, { height: 60 / scale }]}>
+                <View style={[styles.mediaCardOverlay, { height: 70 / scale }]}>
                     <Text
                         numberOfLines={2}
                         ellipsizeMode="tail"
                         style={[
                             styles.mediaCardText,
-                            { fontSize: 16 / scale, height: 37 / scale },
+                            { fontSize: 14 / scale, height: 37 / scale },
                         ]}
                     >
                         {anime.name}

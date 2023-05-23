@@ -1,4 +1,9 @@
-import { StyleSheet, View, useWindowDimensions } from "react-native";
+import {
+    StyleSheet,
+    View,
+    useWindowDimensions,
+    ScrollView,
+} from "react-native";
 import {
     AiringNext,
     width as AiringNextWidth,
@@ -8,7 +13,6 @@ import { ApolloClient, InMemoryCache, gql } from "@apollo/client";
 import { useEffect, useState } from "react";
 import { MediaCard } from "./components/MediaCard";
 import useTimeTicker from "./hooks/useTimeTicker";
-import { ScrollView } from "react-native-web";
 
 const client = new ApolloClient({
     uri: "https://graphql.anilist.co",
@@ -104,13 +108,14 @@ export default function App() {
             let newMedias = data.data.MediaListCollection.lists[0].entries;
             newMedias = newMedias
                 .filter((resp) => {
-                    if (resp.media.episodes === null) return true;
                     if (resp.media.nextAiringEpisode) {
                         return (
                             resp.progress <
                             resp.media.nextAiringEpisode.episode - 1
                         );
                     }
+
+                    if (resp.media.episodes === null) return true;
                     return resp.progress < resp.media.episodes;
                 })
                 .sort((a, b) => {
