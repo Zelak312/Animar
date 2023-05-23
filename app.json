@@ -21,7 +21,13 @@
                 "foregroundImage": "./assets/adaptive-icon.png",
                 "backgroundColor": "#ffffff"
             },
-            "package": "com.zelak.Animar"
+            "package": "com.zelak.Animar",
+            "intentFilters": [
+                {
+                    "action": "MAIN",
+                    "category": ["LEANBACK_LAUNCHER"]
+                }
+            ]
         },
         "web": {
             "favicon": "./assets/favicon.png"

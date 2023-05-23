@@ -82,6 +82,7 @@ export default function App() {
             fetchPolicy: "network-only",
         });
         const newAiringNext = data.data.Page.airingSchedules;
+        console.log(newAiringNext);
         setAiringNext(newAiringNext);
     };
 
