@@ -5,7 +5,12 @@ export const MediaCard = ({ anime, scale }) => {
         anime.nextAiringEpisode?.episode == null
             ? anime.episodes ?? "?"
             : anime.nextAiringEpisode?.episode - 1;
-    const color = anime.progress === 0 ? "#300FFF" : "#ED780D";
+    const color =
+        anime.nextAiringEpisode != null
+            ? "#03A113"
+            : anime.progress === 0
+            ? "#300FFF"
+            : "#ED780D";
 
     return (
         <View

@@ -7,7 +7,8 @@
         "android": "expo start --android",
         "ios": "expo start --ios",
         "web": "expo start --web",
-        "build:apk": "eas build -p android --profile apk"
+        "build:apk": "eas build -p android --profile apk",
+        "build:prod": "eas build -p android --profile production"
     },
     "dependencies": {
         "@apollo/client": "^3.7.14",

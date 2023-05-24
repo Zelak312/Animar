@@ -3,7 +3,7 @@
         "name": "Animar",
         "slug": "Animar",
         "platforms": ["android", "web"],
-        "version": "1.0.0",
+        "version": "1.0.1",
         "orientation": "landscape",
         "icon": "./assets/icon.png",
         "userInterfaceStyle": "light",
@@ -13,10 +13,8 @@
             "backgroundColor": "#ffffff"
         },
         "assetBundlePatterns": ["**/*"],
-        "ios": {
-            "supportsTablet": true
-        },
         "android": {
+            "androidTv": true,
             "adaptiveIcon": {
                 "foregroundImage": "./assets/adaptive-icon.png",
                 "backgroundColor": "#ffffff"
