@@ -8,7 +8,7 @@ import { MediaCard } from "./MediaCard";
 import { useState, useEffect } from "react";
 import { client, mediaQuery } from "../anilist/client";
 
-export const MediaList = ({ planning = false }) => {
+export const MediaList = ({ scrollViewRef, planning = false }) => {
     const { scale } = useWindowDimensions();
 
     const [medias, setMedias] = useState([]);
@@ -50,10 +50,10 @@ export const MediaList = ({ planning = false }) => {
         }, 300000);
 
         return () => clearInterval(intervalId);
-    }, []);
+    }, [planning]);
 
     return (
-        <ScrollView>
+        <ScrollView ref={scrollViewRef}>
             <View style={styles.mediaCardContainer}>
                 {medias.map((media) => {
                     return (
