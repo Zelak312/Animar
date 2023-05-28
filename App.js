@@ -4,15 +4,10 @@ import {
     useWindowDimensions,
     ScrollView,
 } from "react-native";
-import {
-    AiringNext,
-    width as AiringNextWidth,
-    height as AiringNextHeight,
-} from "./components/AiringNext";
 import { ApolloClient, InMemoryCache, gql } from "@apollo/client";
 import { useEffect, useState } from "react";
 import { MediaCard } from "./components/MediaCard";
-import useTimeTicker from "./hooks/useTimeTicker";
+import { TopBar } from "./components/TopBar";
 
 const client = new ApolloClient({
     uri: "https://graphql.anilist.co",
@@ -21,29 +16,6 @@ const client = new ApolloClient({
         resultCaching: false,
     }),
 });
-
-const nextAiringQuery = gql`
-    query GetNextAiring($perPage: Int) {
-        Page(perPage: $perPage) {
-            airingSchedules(sort: TIME, notYetAired: true) {
-                airingAt
-                episode
-                media {
-                    id
-                    title {
-                        romaji
-                        english
-                        native
-                    }
-                    coverImage {
-                        large
-                        color
-                    }
-                }
-            }
-        }
-    }
-`;
 
 const mediaQuery = gql`
     query GetUserMedia($userName: String) {
@@ -73,27 +45,8 @@ const mediaQuery = gql`
 `;
 
 export default function App() {
-    const { width, scale } = useWindowDimensions();
-    const maxCards = Math.floor((width * scale) / (AiringNextWidth + 15));
-    const [airingNext, setAiringNext] = useState([]);
+    const { scale } = useWindowDimensions();
     const [medias, setMedias] = useState([]);
-
-    const fetchAiringNext = async () => {
-        const data = await client.query({
-            query: nextAiringQuery,
-            variables: {
-                perPage: maxCards,
-            },
-            fetchPolicy: "network-only",
-        });
-        const newAiringNext = data.data.Page.airingSchedules;
-        setAiringNext(newAiringNext);
-    };
-
-    useEffect(() => {
-        fetchAiringNext();
-    }, [maxCards]);
-    const now = useTimeTicker(airingNext, fetchAiringNext);
 
     useEffect(() => {
         const fetchMedia = async () => {
@@ -133,35 +86,9 @@ export default function App() {
         return () => clearInterval(intervalId);
     }, []);
 
-    const navbarStyle = {
-        height: AiringNextHeight / scale + 20, // 20% of screen height
-        backgroundColor: "#2C2C2C",
-        flexDirection: "row",
-        padding: 10,
-        justifyContent: "space-between",
-    };
-
     return (
         <View style={styles.container}>
-            <View style={navbarStyle}>
-                {airingNext.map((airing) => {
-                    return (
-                        <AiringNext
-                            key={airing.media.id}
-                            anime={{
-                                name:
-                                    airing.media.title.english ||
-                                    airing.media.title.romaji,
-                                url: airing.media.coverImage.large,
-                                nextEpisode: airing.episode,
-                                timestamp: airing.airingAt,
-                            }}
-                            scale={scale}
-                            now={now}
-                        />
-                    );
-                })}
-            </View>
+            <TopBar />
             <ScrollView>
                 <View style={styles.mediaCardContainer}>
                     {medias.map((media) => {
