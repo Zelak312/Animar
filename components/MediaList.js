@@ -8,7 +8,7 @@ import { MediaCard } from "./MediaCard";
 import { useState, useEffect } from "react";
 import { client, mediaQuery } from "../anilist/client";
 
-export const MediaList = () => {
+export const MediaList = ({ planning = false }) => {
     const { scale } = useWindowDimensions();
 
     const [medias, setMedias] = useState([]);
@@ -19,6 +19,7 @@ export const MediaList = () => {
                 query: mediaQuery,
                 variables: {
                     userName: "Zelak",
+                    status: planning ? "PLANNING" : "CURRENT",
                 },
                 fetchPolicy: "network-only",
             });

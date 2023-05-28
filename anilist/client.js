@@ -8,9 +8,32 @@ export const client = new ApolloClient({
     }),
 });
 
+export const nextAiringQuery = gql`
+    query GetNextAiring($perPage: Int) {
+        Page(perPage: $perPage) {
+            airingSchedules(sort: TIME, notYetAired: true) {
+                airingAt
+                episode
+                media {
+                    id
+                    title {
+                        romaji
+                        english
+                        native
+                    }
+                    coverImage {
+                        large
+                        color
+                    }
+                }
+            }
+        }
+    }
+`;
+
 export const mediaQuery = gql`
-    query GetUserMedia($userName: String) {
-        MediaListCollection(userName: $userName, status: CURRENT, type: ANIME) {
+    query GetUserMedia($userName: String, $status: MediaListStatus) {
+        MediaListCollection(userName: $userName, status: $status, type: ANIME) {
             lists {
                 entries {
                     media {
